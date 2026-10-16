@@ -1,0 +1,23 @@
+{% extends "content/base.html" %}
+{% load static %}
+
+{% block title %}Brands{% endblock %}
+
+{% block content %}
+  <section class="hero archive-hero">
+    <div class="container">
+      <h1>Brands</h1>
+      <p>Browse all brands in our reviews directory.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      {{ industries|json_script:"brand-list-industries" }}
+      <div id="brand-list"></div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'dist/brand-list.js' %}"></script>
+{% endblock %}

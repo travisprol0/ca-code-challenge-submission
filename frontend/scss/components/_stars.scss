@@ -1,0 +1,37 @@
+.stars {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.stars .star-full {
+  color: var(--color-star);
+}
+
+.stars .star-empty {
+  color: var(--color-star-empty);
+}
+
+.stars .star-half {
+  position: relative;
+  color: var(--color-star-empty);
+}
+
+.stars .star-half::before {
+  content: "\2605";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  overflow: hidden;
+  color: var(--color-star);
+}
+
+.stars .rating-value {
+  margin-left: var(--space-8);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+}

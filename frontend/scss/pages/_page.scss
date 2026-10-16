@@ -1,0 +1,12 @@
+.page-body {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-32);
+  margin: var(--space-48) var(--space-0);
+}
+
+.page-body h1 {
+  margin-top: var(--space-0);
+  font-size: 1.75rem;
+}

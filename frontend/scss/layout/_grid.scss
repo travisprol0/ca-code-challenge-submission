@@ -1,0 +1,13 @@
+@use "../abstracts" as *;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-20);
+}
+
+@include respond-to(sm) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

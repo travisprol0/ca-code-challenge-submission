@@ -1,0 +1,38 @@
+{% extends "content/base.html" %}
+
+{% block title %}{{ brand.title }}{% endblock %}
+
+{% block content %}
+  <section class="brand-hero">
+    <div class="container">
+      <h1>{{ brand.title }}</h1>
+      {% if industry %}<p>{{ industry }}</p>{% endif %}
+      {% if brand.short_description %}<p>{{ brand.short_description }}</p>{% endif %}
+      {% if stars %}{% include "content/stars.html" with stars=stars %}{% endif %}
+      <div class="brand-meta">
+        {% if website_host %}<a href="{{ brand.website_url }}" rel="nofollow noopener" target="_blank">{{ website_host }}</a>{% endif %}
+        {{ brand.founded_year }}
+        {{ brand.headquarters }}
+        {{ brand.review_count }}
+      </div>
+    </div>
+  </section>
+  <section class="brand-body">
+    <div class="container">
+      <div class="content">{{ brand.body|safe }}</div>
+    </div>
+  </section>
+  <section class="reviews-section">
+    <div class="container">
+      {% for review in reviews %}
+      <article class="review-item">
+        <h2><a href="/review/{{ review.slug }}/">{{ review.title }}</a></h2>
+        {% include "content/stars.html" with stars=review.stars %}
+        <p class="review-byline">{{ review.reviewer_name }}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %}</p>
+        <time>{{ review.published_at|date:"F j, Y" }}</time>
+        <div class="review-body">{{ review.body|safe }}</div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

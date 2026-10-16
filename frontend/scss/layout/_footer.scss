@@ -1,0 +1,11 @@
+.site-footer {
+  background: var(--color-footer-bg);
+  color: var(--color-footer-text);
+  padding: var(--space-32) var(--space-0);
+  margin-top: var(--space-64);
+  font-size: 0.9rem;
+}
+
+.site-footer a {
+  color: var(--color-footer-link);
+}

@@ -1,0 +1,21 @@
+{% extends "content/base.html" %}
+{% load static %}
+
+{% block content %}
+  <section class="hero">
+    <div class="container">
+      <h1>Honest reviews of consumer brands</h1>
+      <p>Independent customer feedback on insurance, telecom, finance, home services, and retail companies.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container">
+      {{ industries|json_script:"brand-list-industries" }}
+      <div id="brand-list"></div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'dist/brand-list.js' %}"></script>
+{% endblock %}

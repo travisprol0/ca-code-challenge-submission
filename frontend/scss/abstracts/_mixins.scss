@@ -1,0 +1,11 @@
+@use "breakpoints" as *;
+
+@mixin respond-to($name) {
+  @if $name == sm {
+    @media (max-width: $breakpoint-sm) {
+      @content;
+    }
+  } @else {
+    @error "Unknown breakpoint `#{$name}`.";
+  }
+}

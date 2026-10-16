@@ -1,0 +1,15 @@
+@use "../abstracts" as *;
+
+:root {
+  @each $name, $value in $colors {
+    --color-#{$name}: #{$value};
+  }
+
+  @each $name, $value in $tokens {
+    --#{$name}: #{$value};
+  }
+
+  @each $name, $value in $spacing {
+    --space-#{$name}: #{$value};
+  }
+}

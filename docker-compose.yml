@@ -1,0 +1,208 @@
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME:-wp}
+      MYSQL_USER: ${WORDPRESS_DB_USER:-wp}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/dump.sql:/docker-entrypoint-initdb.d/01-dump.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - ca-wp
+
+  wordpress:
+    image: wordpress:6.9-php8.3-apache
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wp}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wp}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
+      WORDPRESS_DEBUG: "1"
+    volumes:
+      - wp_files:/var/www/html
+      - ./wp-content/plugins:/var/www/html/wp-content/plugins
+      - ./wp-content/mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./wp-content/themes/consumer-reviews:/var/www/html/wp-content/themes/consumer-reviews
+      - ./wp-content/uploads:/var/www/html/wp-content/uploads
+    entrypoint:
+      - bash
+      - -c
+      - |
+        mkdir -p /var/www/html/wp-content/themes /var/www/html/wp-content/languages
+        cp -rn /usr/src/wordpress/wp-content/themes/. /var/www/html/wp-content/themes/ 2>/dev/null || true
+        cp -rn /usr/src/wordpress/wp-content/languages/. /var/www/html/wp-content/languages/ 2>/dev/null || true
+        [ -f /var/www/html/wp-content/index.php ] || cp /usr/src/wordpress/wp-content/index.php /var/www/html/wp-content/index.php 2>/dev/null || true
+        exec docker-entrypoint.sh apache2-foreground
+    networks:
+      - ca-wp
+
+  wpcli:
+    image: wordpress:cli-php8.3
+    profiles: ["tools"]
+    user: "0:0"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wp}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wp}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp}
+      WP_SITE_URL: ${WP_SITE_URL:-http://localhost:8080}
+      WP_SITE_TITLE: ${WP_SITE_TITLE:-Brand Reviews Challenge}
+      WP_ADMIN_USER: ${WP_ADMIN_USER:-admin}
+      WP_ADMIN_PASSWORD: ${WP_ADMIN_PASSWORD:-admin}
+      WP_ADMIN_EMAIL: ${WP_ADMIN_EMAIL:-admin@example.com}
+    volumes:
+      - wp_files:/var/www/html
+      - ./wp-content/plugins:/var/www/html/wp-content/plugins
+      - ./wp-content/mu-plugins:/var/www/html/wp-content/mu-plugins
+      - ./wp-content/themes/consumer-reviews:/var/www/html/wp-content/themes/consumer-reviews
+      - ./wp-content/uploads:/var/www/html/wp-content/uploads
+      - ./scripts:/scripts:ro
+    entrypoint: ["wp", "--allow-root"]
+    networks:
+      - ca-wp
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${WORDPRESS_DB_USER:-wp}
+      PMA_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp}
+      UPLOAD_LIMIT: 256M
+    networks:
+      - ca-wp
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: app
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/01-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d app"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - ca-wp
+
+  auth:
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: auth
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_PORT: "3306"
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wp}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wp}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp}
+      WORDPRESS_TABLE_PREFIX: ${WORDPRESS_TABLE_PREFIX:-wp_}
+    ports:
+      - "8001:8000"
+    volumes:
+      - auth_private_keys:/keys
+      - shared_public_keys:/shared
+    networks:
+      - ca-wp
+
+  web:
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      auth:
+        condition: service_started
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: app
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_PORT: "3306"
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wp}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wp}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wp}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    ports:
+      - "8000:8000"
+    volumes:
+      - shared_public_keys:/shared
+      - ./db/dump.sql:/srv/db/dump.sql:ro
+      - ./README.md:/srv/README.md:ro
+      - ./app/static:/srv/static
+    networks:
+      - ca-wp
+
+  scss:
+    image: node:22-bookworm
+    profiles: ["scss"]
+    working_dir: /work/frontend
+    volumes:
+      - .:/work
+    networks:
+      - ca-wp
+
+  shared-test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: docker/shared-test.Dockerfile
+    working_dir: /src
+    volumes:
+      - ./packages/shared-auth:/src:ro
+    entrypoint: ["pytest"]
+    networks:
+      - ca-wp
+
+volumes:
+  db_data:
+  wp_files:
+  postgres_data:
+  auth_private_keys:
+  shared_public_keys:
+
+networks:
+  ca-wp:
+    name: ca-wp

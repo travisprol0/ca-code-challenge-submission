@@ -1,0 +1,21 @@
+{% extends "content/base.html" %}
+
+{% block title %}{{ review.title }}{% endblock %}
+
+{% block content %}
+  <section class="review-hero">
+    <div class="container">
+      <h1>{{ review.title }}</h1>
+      <p class="review-byline">{{ review.reviewer.display_name }}{% if review.reviewer_location %}, {{ review.reviewer_location }}{% endif %}</p>
+      {% include "content/stars.html" with stars=stars %}
+      <time>{{ review.published_at|date:"F j, Y" }}</time>
+      <p>Posted by {{ review.reviewer.display_name }}</p>
+      <a class="brand-link" href="/brand/{{ review.brand.slug }}/">{{ review.brand.title }}</a>
+    </div>
+  </section>
+  <section class="brand-body">
+    <div class="container">
+      <div class="content">{{ review.body|safe }}</div>
+    </div>
+  </section>
+{% endblock %}

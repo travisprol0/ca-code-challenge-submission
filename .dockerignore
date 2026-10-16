@@ -1,0 +1,9 @@
+.git
+**/__pycache__
+**/*.pyc
+wp-content
+db
+reference
+local-dev
+interviewer
+frontend

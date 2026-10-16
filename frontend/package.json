@@ -1,0 +1,25 @@
+{
+  "name": "frontend",
+  "private": true,
+  "dependencies": {
+    "sass": "1.105.1"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitest/coverage-v8": "5.0.4",
+    "axe-core": "4.14.0",
+    "jest-axe": "11.0.0",
+    "jsdom": "30.1.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "vite": "8.3.4",
+    "vitest": "5.0.4"
+  },
+  "scripts": {
+    "build": "sass scss/main.scss ../app/static/dist/main.css --no-source-map --style=expanded && vite build",
+    "test": "node --test tests/scss.test.mjs tests/brand-list-css.test.mjs; s1=$?; vitest run tests/brand-list.test.ts; exit $((s1 || $?))"
+  }
+}

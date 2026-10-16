@@ -1,0 +1,16 @@
+.env
+.DS_Store
+wp-content/upgrade/
+wp-content/cache/
+wp-content/backup-db/
+wp-content/uploads/wp-personal-data-exports/
+*.log
+*.pem
+frontend/node_modules/
+
+# Interviewer-only material — never shipped to candidates.
+interviewer/
+
+# Local working notes. Kept on disk, not in the tree that gets sent.
+local-dev/
+.cursor/

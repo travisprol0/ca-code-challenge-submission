@@ -1,0 +1,31 @@
+@use "../abstracts" as *;
+
+.hero {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-hero-end) 100%);
+  color: var(--color-inverse);
+  padding: var(--space-64) var(--space-0) var(--space-56);
+}
+
+.hero h1 {
+  font-size: 2.25rem;
+  margin: var(--space-0) var(--space-0) var(--space-12);
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  opacity: 0.92;
+  margin: var(--space-0);
+  max-width: 640px;
+}
+
+@include respond-to(sm) {
+  .hero {
+    padding: var(--space-40) var(--space-0);
+  }
+
+  .hero h1 {
+    font-size: 1.75rem;
+  }
+}
